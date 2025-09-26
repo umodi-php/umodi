@@ -13,7 +13,7 @@ class AssertCollector
 
     public function assert(AssertResult $assertResult, string $title = '')
     {
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
         $this->assertions[] = new Assertion(
             $title,
@@ -26,7 +26,7 @@ class AssertCollector
 
     public function skip(AssertResult $assertResult, string $title = '')
     {
-        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+        $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 1);
 
         $this->assertions[] = new Assertion(
             $title,

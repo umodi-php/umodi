@@ -163,8 +163,8 @@ class UnitRunner
 
             $type = $param->getType();
             $class = $type && !$type->isBuiltin() ? (string)$type : null;
-            $hint = $class ? "тип {$class}" : "имя \${$param->getName()}";
-            throw new \RuntimeException("Не удалось внедрить параметр {$hint} для {$this->callableToString($callable)}");
+            $hint = $class ? "type {$class}" : "name \${$param->getName()}";
+            throw new \RuntimeException("Can't inject {$hint} for {$this->callableToString($callable)}");
         }
 
         return $callable(...$args);
