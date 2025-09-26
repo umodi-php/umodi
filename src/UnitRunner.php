@@ -22,7 +22,7 @@ class UnitRunner
     {
     }
 
-    public function run(): void
+    public function run(): TestsResult
     {
         foreach (new DirectoryIterator(getcwd() . '/tests') as $fileInfo) {
             if ($fileInfo->isDot()) {
@@ -82,6 +82,8 @@ class UnitRunner
 
         $this->progressWatcher->onStart($allTests);
 
+        $result = new TestsResult();
+
         foreach ($allTests as $unitTitle => $unit) {
             $tests = $unit->getTests();
             $this->progressWatcher->onUnitStart($unitTitle, $unit);
@@ -134,6 +136,9 @@ class UnitRunner
                         );
                     }
                 }
+                $testResolution = $this->detectTestResolution($assertCollector);
+                $result->registerTestResult($testResolution, count($assertCollector->assertions));
+
                 $this->progressWatcher->onTestResult($unitTitle, $unit, $testTitle, $assertCollector);
 
                 $unit->runAfterEach();
@@ -142,6 +147,34 @@ class UnitRunner
             $unit->runAfter();
         }
         $this->progressWatcher->onEnd();
+
+        return $result;
+    }
+
+    private function detectTestResolution(AssertCollector $assertCollector): AssertResolution
+    {
+        $resolution = AssertResolution::Success;
+
+        foreach ($assertCollector->assertions as $assertion) {
+            if ($this->severity($assertion->resolution) > $this->severity($resolution)) {
+                $resolution = $assertion->resolution;
+            }
+        }
+
+        return $resolution;
+    }
+
+    private function severity(AssertResolution $resolution): int
+    {
+        return match ($resolution) {
+            AssertResolution::Success => 0,
+            AssertResolution::Skipped => 1,
+            AssertResolution::Incomplete => 2,
+            AssertResolution::Warning => 3,
+            AssertResolution::Failed => 4,
+            AssertResolution::Error => 5,
+            AssertResolution::Risky => 6,
+        };
     }
 
     private function invoke(callable $callable, array $provided = [], array $context = []): mixed
