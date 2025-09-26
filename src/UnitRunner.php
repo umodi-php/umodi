@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Umodi;
 
-use DirectoryIterator;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
@@ -12,26 +11,25 @@ use Umodi\Attribute\Skipped;
 use Umodi\Di\ParameterResolverInterface;
 use Umodi\Exception\TestPreconditionFailedException;
 use Umodi\ProgressWatcher\ProgressWatcherInterface;
+use Umodi\FilesystemUnitLoader;
+use Umodi\UnitLoaderInterface;
 
 class UnitRunner
 {
+    private readonly UnitLoaderInterface $unitLoader;
+
     public function __construct(
         public readonly ProgressWatcherInterface    $progressWatcher,
         private readonly ParameterResolverInterface $resolver,
+        ?UnitLoaderInterface $unitLoader = null,
     )
     {
+        $this->unitLoader = $unitLoader ?? new FilesystemUnitLoader(getcwd() . '/tests');
     }
 
     public function run(): TestsResult
     {
-        foreach (new DirectoryIterator(getcwd() . '/tests') as $fileInfo) {
-            if ($fileInfo->isDot()) {
-                continue;
-            }
-            include_once $fileInfo->getRealPath();
-        }
-
-        $units = _unit();
+        $units = $this->unitLoader->load();
 
         /** @var array<string, Unit> $allTests */
         $allTests = [];
