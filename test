@@ -1,0 +1,97 @@
+namespace umodi;
+namespace umodi;
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+use Doctrine\ORM\EntityManagerInterface;
+use Psr\Container\ContainerInterface;
+use Symfony\Bundle\FrameworkBundle\KernelBrowser;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Dotenv\Dotenv;
+use umodi\src\Unit\Di\CompositeResolver;
+use umodi\src\Unit\Di\ParameterResolverInterface;
+use umodi\src\Unit\Di\ProvidedMapResolver;
+use umodi\src\Unit\Di\Resolution;
+use umodi\src\Unit\ProgressWatcher\SymfonyCliProgressWatcher;
+use umodi\src\Unit\UnitRunner;
+
+require __DIR__ . '/../vendor/autoload_runtime.php';
+
+// если хочешь оставить свой автолоадер поверх composer — ок:
+spl_autoload_register(static function ($class) {
+    $filename = __DIR__ . '/src/' . str_replace('\\', '/', $class) . '.php';
+    if (file_exists($filename)) {
+        include $filename;
+    }
+});
+
+include __DIR__ . '/src/functions.php';
+
+final class PsrContainerResolver implements ParameterResolverInterface
+{
+    public function __construct(private readonly ContainerInterface $c)
+    {
+    }
+
+    public function resolve(ReflectionParameter $param, array $provided, array $context = []): Resolution
+    {
+        $type = $param->getType();
+        $class = $type && !$type->isBuiltin() ? (string)$type : null;
+        if ($class && $this->c->has($class)) {
+            return Resolution::hit($this->c->get($class));
+        }
+        return Resolution::miss();
+    }
+}
+
+final class SymfonyDoctrineResolver implements ParameterResolverInterface
+{
+    public function __construct(private readonly ContainerInterface $c)
+    {
+    }
+
+    public function resolve(\ReflectionParameter $param, array $provided, array $context = []): Resolution
+    {
+        $type = $param->getType();
+        $class = $type && !$type->isBuiltin() ? (string)$type : null;
+        if ($this->c->has($class)) {
+            return Resolution::hit($this->c->get($class));
+        }
+        if ($class === EntityManagerInterface::class) {
+            if ($this->c->has('doctrine.orm.entity_manager')) {
+                return Resolution::hit($this->c->get('doctrine.orm.entity_manager'));
+            }
+        }
+
+        if ($class === KernelBrowser::class) {
+            if ($this->c->has('test.client')) {
+                return Resolution::hit($this->c->get('test.client'));
+            }
+        }
+        return Resolution::miss();
+    }
+}
+
+$kernel = new AppKernel('test', true);
+if (method_exists(Dotenv::class, 'bootEnv')) {
+    (new Dotenv())->bootEnv(dirname(__DIR__) . '/.env');
+}
+$kernel->boot();
+
+$resolver = new CompositeResolver([
+    new ProvidedMapResolver([]),
+    new SymfonyDoctrineResolver($kernel->getContainer()),
+]);
+
+$runner = new UnitRunner(new SymfonyCliProgressWatcher(new ConsoleOutput()), $resolver);
+
+foreach (new DirectoryIterator(__DIR__ . '/tests') as $fileInfo) {
+    if ($fileInfo->isDot()) continue;
+    include_once $fileInfo->getRealPath();
+}
+
+$runner->run();
+
+exit(0);

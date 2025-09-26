@@ -1,0 +1,21 @@
+{
+    "name": "pilov-pa/unit",
+    "version": "0.1.1",
+    "description": "Unit tests library",
+    "keywords": [
+        "unit"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "classmap": [
+            "src/"
+        ]
+    },
+    "require": {
+        "php-64bit": ">=7.4"
+    },
+    "bin": [
+        "test"
+    ]
+}
