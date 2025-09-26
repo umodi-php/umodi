@@ -10,7 +10,7 @@ use Umodi\Attribute\Skipped;
 use Umodi\Exception\TestPreconditionFailedException;
 use Umodi\Unit;
 use function Umodi\Assert\Browser\statusOk;
-use function Umodi\Assert\isTrue;
+use function Umodi\Assert\Boolean\isTrue;
 use function Umodi\unit;
 
 unit('Bulk post archive', static function (Unit $unit, EntityManagerInterface $em, KernelBrowser $browser) {
