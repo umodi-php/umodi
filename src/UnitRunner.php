@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Umodi;
 
+use DirectoryIterator;
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
@@ -23,6 +24,13 @@ class UnitRunner
 
     public function run(): void
     {
+        foreach (new DirectoryIterator(getcwd() . '/tests') as $fileInfo) {
+            if ($fileInfo->isDot()) {
+                continue;
+            }
+            include_once $fileInfo->getRealPath();
+        }
+
         $units = _unit();
 
         /** @var array<string, Unit> $allTests */

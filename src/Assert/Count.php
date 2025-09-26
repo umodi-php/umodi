@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace Umodi\Assert;
 
 use Countable;
+use Umodi\AssertResolution;
+use Umodi\AssertResult;
 
-class Count implements AssertInterface
+function count(int $expected, Countable|array $actual): AssertResult
 {
-    public static function a(int $expected, Countable|array $actual): AssertInterface
-    {
-
-    }
+    return new AssertResult(
+        $expected === \count($actual)
+            ? AssertResolution::Success
+            : AssertResolution::Failed,
+        sprintf('Expected %d items, got %d', \count($actual), $expected)
+    );
 }

@@ -7,15 +7,12 @@ namespace Umodi\Assert;
 use Umodi\AssertResolution;
 use Umodi\AssertResult;
 
-class IsTrue implements AssertInterface
+function isTrue(mixed $actual): AssertResult
 {
-    public static function a(mixed $actual): AssertResult
-    {
-        return new AssertResult(
-            $actual === true
-                ? AssertResolution::Success
-                : AssertResolution::Failed,
-            sprintf('Expected `true`, actual `%s`', $actual),
-        );
-    }
+    return new AssertResult(
+        $actual === true
+            ? AssertResolution::Success
+            : AssertResolution::Failed,
+        sprintf('Expected `true`, actual `%s`', $actual),
+    );
 }

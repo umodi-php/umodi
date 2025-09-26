@@ -1,9 +1,11 @@
 {
-    "name": "pilov-pa/umodi",
-    "version": "0.1.1",
+    "name": "umodi/umodi",
+    "version": "0.2.1",
     "description": "Unit tests library",
     "keywords": [
-        "unit"
+        "unit",
+        "tests",
+        "unit tests"
     ],
     "type": "library",
     "license": "MIT",
@@ -13,9 +15,6 @@
         ]
     },
     "require": {
-        "php-64bit": ">=7.4"
-    },
-    "bin": [
-        "test"
-    ]
+        "php": ">=8.1"
+    }
 }

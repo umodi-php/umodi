@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-use App\Entity\Post;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Umodi\Assert\Browser\StatusOk;
-use Umodi\Assert\IsTrue;
+use Umodi\AssertCollector;
 use Umodi\Attribute\Incomplete;
 use Umodi\Attribute\Skipped;
 use Umodi\Exception\TestPreconditionFailedException;
 use Umodi\Unit;
-use Unit\AssertCollector;
+use function Umodi\Assert\Browser\statusOk;
+use function Umodi\Assert\isTrue;
+use function Umodi\unit;
 
 unit('Bulk post archive', static function (Unit $unit, EntityManagerInterface $em, KernelBrowser $browser) {
     dbMixin($unit, $em);
@@ -23,25 +23,25 @@ unit('Bulk post archive', static function (Unit $unit, EntityManagerInterface $e
 
     $unit->test('Test assert failed',
         #[Incomplete('Flaky')] static function (AssertCollector $a) {
-            $a->assert(IsTrue::a(false), 'Failed asserting true');
-            $a->assert(IsTrue::a(false), 'Failed asserting true 2');
+            $a->assert(isTrue(false), 'Failed asserting true');
+            $a->assert(isTrue(false), 'Failed asserting true 2');
         });
 
     $unit->test('Test assert success',
         static function (AssertCollector $a) {
-            $a->assert(IsTrue::a(true), 'Success asserting true');
-            $a->assert(IsTrue::a(true), 'Success asserting true 2');
+            $a->assert(isTrue(true), 'Success asserting true');
+            $a->assert(isTrue(true), 'Success asserting true 2');
         });
 
     $unit->test('Test assert skip',
         static function (AssertCollector $a) {
-            $a->skip(IsTrue::a(false), 'Skipped');
+            $a->skip(isTrue(false), 'Skipped');
         });
 
     $unit->test('Test assert skip partial',
         static function (AssertCollector $a) {
-            $a->assert(IsTrue::a(true), 'Not skipped');
-            $a->skip(IsTrue::a(false), 'Skipped');
+            $a->assert(isTrue(true), 'Not skipped');
+            $a->skip(isTrue(false), 'Skipped');
         });
 
     $unit->test('Bulk post archive',
@@ -59,12 +59,12 @@ unit('Bulk post archive', static function (Unit $unit, EntityManagerInterface $e
                     'post_ids' => [1, 2],
                 ]);
 
-            $a->assert(StatusOk::a($browser->getResponse()), 'Http OK');
+            $a->assert(statusOk($browser->getResponse()), 'Http OK');
 
             $post = $em->find(Post::class, 1);
-            $a->assert(IsTrue::a($post->getIsArchived()), "Post 1 archived");
+            $a->assert(isTrue($post->getIsArchived()), "Post 1 archived");
 
             $post = $em->find(Post::class, 2);
-            $a->assert(IsTrue::a($post->getIsArchived()), 'Post 2 archived');
+            $a->assert(isTrue($post->getIsArchived()), 'Post 2 archived');
         });
 });

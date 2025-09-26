@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Umodi\ProgressWatcher;
 
 use Umodi\Unit;
-use Unit\AssertCollector;
+use Umodi\AssertCollector;
 
 interface ProgressWatcherInterface
 {

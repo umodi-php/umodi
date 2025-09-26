@@ -4,18 +4,6 @@ declare(strict_types=1);
 
 namespace Umodi;
 
-class Assertion
-{
-    public function __construct(
-        public readonly string $title,
-        public readonly string $description,
-        public readonly AssertResolution $resolution,
-        public readonly string $file,
-        public readonly int $line,
-    )
-    {
-    }
-}
 class AssertCollector
 {
     /**

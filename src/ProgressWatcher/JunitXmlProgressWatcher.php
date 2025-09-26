@@ -7,7 +7,7 @@ namespace Umodi\ProgressWatcher;
 use Umodi\Assertion;
 use Umodi\AssertResolution;
 use Umodi\Unit;
-use Unit\AssertCollector;
+use Umodi\AssertCollector;
 
 final class JunitXmlProgressWatcher implements ProgressWatcherInterface
 {

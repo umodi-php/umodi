@@ -7,15 +7,12 @@ namespace Umodi\Assert;
 use Umodi\AssertResolution;
 use Umodi\AssertResult;
 
-class Eq implements AssertInterface
+function eq(mixed $expected, mixed $actual): AssertResult
 {
-    public static function a(mixed $expected, mixed $actual): AssertResult
-    {
-        return new AssertResult(
-            $expected === $actual
-                ? AssertResolution::Success
-                : AssertResolution::Failed,
-            '',
-        );
-    }
+    return new AssertResult(
+        $expected === $actual
+            ? AssertResolution::Success
+            : AssertResolution::Failed,
+        sprintf('Expected %d, got %d', $expected, $actual),
+    );
 }
