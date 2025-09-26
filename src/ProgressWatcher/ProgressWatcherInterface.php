@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace umodi\src\Unit\ProgressWatcher;
+namespace Umodi\ProgressWatcher;
 
-use umodi\src\Unit\Unit;
+use Umodi\Unit;
 use Unit\AssertCollector;
 
 interface ProgressWatcherInterface

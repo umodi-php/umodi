@@ -5,12 +5,12 @@ declare(strict_types=1);
 use App\Entity\Post;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use umodi\src\Unit\Assert\Browser\StatusOk;
-use umodi\src\Unit\Assert\IsTrue;
-use umodi\src\Unit\Attribute\Incomplete;
-use umodi\src\Unit\Attribute\Skipped;
-use umodi\src\Unit\Exception\TestPreconditionFailedException;
-use umodi\src\Unit\Unit;
+use Umodi\Assert\Browser\StatusOk;
+use Umodi\Assert\IsTrue;
+use Umodi\Attribute\Incomplete;
+use Umodi\Attribute\Skipped;
+use Umodi\Exception\TestPreconditionFailedException;
+use Umodi\Unit;
 use Unit\AssertCollector;
 
 unit('Bulk post archive', static function (Unit $unit, EntityManagerInterface $em, KernelBrowser $browser) {

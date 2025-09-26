@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+namespace Umodi;
+
 function _unit(string $name = null, callable $unitCallback = null)
 {
     static $units = [];

@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Doctrine\ORM\EntityManagerInterface;
-use umodi\src\Unit\Unit;
+use Umodi\Unit;
 
 function dbMixin(Unit $unit, EntityManagerInterface $em): void
 {

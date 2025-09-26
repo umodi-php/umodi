@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace umodi\src\Unit\Exception;
+namespace Umodi\Exception;
 
 class TestPreconditionFailedException extends \Exception
 {

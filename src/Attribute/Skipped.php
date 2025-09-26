@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace umodi\src\Unit\Attribute;
+namespace Umodi\Attribute;
 
 use Attribute;
 

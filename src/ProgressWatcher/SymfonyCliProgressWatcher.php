@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace umodi\src\Unit\ProgressWatcher;
+namespace Umodi\ProgressWatcher;
 
 use Symfony\Component\Console\Output\Output;
-use umodi\src\Unit\Assertion;
-use umodi\src\Unit\AssertResolution;
-use umodi\src\Unit\Unit;
+use Umodi\Assertion;
+use Umodi\AssertResolution;
+use Umodi\Unit;
 use Unit\AssertCollector;
 
 class SymfonyCliProgressWatcher implements ProgressWatcherInterface

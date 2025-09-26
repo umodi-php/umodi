@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace umodi\src\Unit\Assert;
+namespace Umodi\Assert;
 
 use Countable;
 

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace umodi\src\Unit\Assert\Browser;
+namespace Umodi\Assert\Browser;
 
 use Symfony\Component\HttpFoundation\Response;
-use umodi\src\Unit\Assert\AssertInterface;
-use umodi\src\Unit\AssertResolution;
-use umodi\src\Unit\AssertResult;
+use Umodi\Assert\AssertInterface;
+use Umodi\AssertResolution;
+use Umodi\AssertResult;
 
 class StatusOk implements AssertInterface
 {

@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace umodi\src\Unit;
+namespace Umodi;
 
 use ReflectionFunction;
 use ReflectionFunctionAbstract;
 use ReflectionMethod;
-use umodi\src\Unit\Attribute\Skipped;
-use umodi\src\Unit\Di\ParameterResolverInterface;
-use umodi\src\Unit\Exception\TestPreconditionFailedException;
-use umodi\src\Unit\ProgressWatcher\ProgressWatcherInterface;
-use Unit\AssertCollector;
+use Umodi\Attribute\Skipped;
+use Umodi\Di\ParameterResolverInterface;
+use Umodi\Exception\TestPreconditionFailedException;
+use Umodi\ProgressWatcher\ProgressWatcherInterface;
 
 class UnitRunner
 {

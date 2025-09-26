@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace umodi\src\Unit\Assert;
+namespace Umodi\Assert;
 
-use umodi\src\Unit\AssertResolution;
-use umodi\src\Unit\AssertResult;
+use Umodi\AssertResolution;
+use Umodi\AssertResult;
 
 class IsTrue implements AssertInterface
 {

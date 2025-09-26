@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace umodi\src\Unit;
+namespace Umodi;
 
 enum AssertResolution: string
 {
