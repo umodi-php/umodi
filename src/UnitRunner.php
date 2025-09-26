@@ -31,7 +31,7 @@ class UnitRunner
             include_once $fileInfo->getRealPath();
         }
 
-        $units = _unit();
+        $units = unitRegistry()->all();
 
         /** @var array<string, Unit> $allTests */
         $allTests = [];
