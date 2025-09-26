@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Umodi\Assert;
+namespace Umodi\Assert\Boolean;
 
 use Umodi\AssertResolution;
 use Umodi\AssertResult;
 
-function isTrue(mixed $actual): AssertResult
+function isFalse(mixed $actual): AssertResult
 {
     return new AssertResult(
-        $actual === true
+        $actual === false
             ? AssertResolution::Success
             : AssertResolution::Failed,
-        sprintf('Expected `true`, actual `%s`', $actual),
+        sprintf('Expected `false`, actual %s', var_export($actual, true)),
     );
 }
