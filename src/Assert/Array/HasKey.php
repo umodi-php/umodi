@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Umodi\Assert\Array;
 
 use ArrayAccess;
-use Umodi\AssertResolution;
 use Umodi\AssertResult;
+use Umodi\Severity\AssertResolution;
 
 /**
  * @param array<array-key, mixed>|ArrayAccess<array-key, mixed> $actual

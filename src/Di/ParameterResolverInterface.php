@@ -13,7 +13,6 @@ interface ParameterResolverInterface
      * Возвращает объект Resolution: ok=true и value — если удалось; ok=false — если нет.
      *
      * @param array $provided Карта заранее предоставленных значений (по имени и/или по FQCN).
-     * @param array $context  Любой сопутствующий контекст вызова (например, текущий Unit).
      */
-    public function resolve(ReflectionParameter $param, array $provided, array $context = []): Resolution;
+    public function resolve(ReflectionParameter $param, array $provided): Resolution;
 }

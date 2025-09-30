@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Umodi\ProgressWatcher;
 
-use Umodi\Assertion;
-use Umodi\AssertResolution;
-use Umodi\Unit;
 use Umodi\AssertCollector;
+use Umodi\Assertion;
+use Umodi\Result\TestOutcome;
+use Umodi\Severity\AssertResolution;
+use Umodi\Unit;
 
 final class JunitXmlProgressWatcher implements ProgressWatcherInterface
 {
@@ -29,15 +30,10 @@ final class JunitXmlProgressWatcher implements ProgressWatcherInterface
     {
     }
 
-    public function onTestResult(string $unitTitle, Unit $unit, string $testTitle, AssertCollector $assertCollector): void
+    public function onTestResult(TestOutcome $outcome): void
     {
-        $res = AssertResolution::Success;
-        foreach ($assertCollector->assertions as $a) {
-            if ($this->severity($a->resolution) > $this->severity($res)) {
-                $res = $a->resolution;
-            }
-        }
-        $this->results[$unitTitle][$testTitle] = ['resolution' => $res, 'assertions' => $assertCollector->assertions];
+        $res = $outcome->resolution;
+        $this->results[$outcome->unitTitle][$outcome->testTitle] = ['resolution' => $res, 'assertions' => $outcome->assertions];
 
         $this->tests++;
         $this->failures += (int)($res === AssertResolution::Failed);
@@ -126,17 +122,5 @@ final class JunitXmlProgressWatcher implements ProgressWatcherInterface
             );
         }
         return implode("\n", $lines);
-    }
-
-    private function severity(AssertResolution $r): int
-    {
-        return match ($r) {
-            AssertResolution::Success => 0,
-            AssertResolution::Skipped => 1,
-            AssertResolution::Incomplete => 2,
-            AssertResolution::Warning => 3,
-            AssertResolution::Failed => 4,
-            AssertResolution::Error => 5,
-        };
     }
 }

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Umodi\Assert\Emptiness;
 
 use Countable;
-use Umodi\AssertResolution;
 use Umodi\AssertResult;
+use Umodi\Severity\AssertResolution;
 
 /**
  * @param Countable|array|string $actual

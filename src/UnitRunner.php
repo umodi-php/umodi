@@ -4,81 +4,43 @@ declare(strict_types=1);
 
 namespace Umodi;
 
-use DirectoryIterator;
 use ReflectionFunction;
-use ReflectionFunctionAbstract;
 use ReflectionMethod;
 use Umodi\Attribute\Skipped;
-use Umodi\Di\ParameterResolverInterface;
+use Umodi\Di\Invoker;
 use Umodi\Exception\TestPreconditionFailedException;
 use Umodi\ProgressWatcher\ProgressWatcherInterface;
+use Umodi\Result\TestOutcome;
+use Umodi\Severity\AssertResolution;
+use Umodi\Severity\DefaultExceptionClassifier;
+use Umodi\Severity\DefaultSeverityPolicy;
+use Umodi\Severity\ExceptionClassifierInterface;
+use Umodi\Severity\TestResolutionAggregator;
+use Umodi\UnitLoader\FileSystemUnitLoader;
+use Umodi\UnitLoader\UnitLoaderInterface;
 
 class UnitRunner
 {
+    private UnitLoaderInterface $unitLoader;
+    private TestResolutionAggregator $testResolutionAggregator;
+    private ExceptionClassifierInterface $classifier;
+
     public function __construct(
-        public readonly ProgressWatcherInterface    $progressWatcher,
-        private readonly ParameterResolverInterface $resolver,
-    )
-    {
+        private readonly ProgressWatcherInterface $progressWatcher,
+        private readonly Invoker $invoker,
+        ?UnitLoaderInterface $unitLoader = null,
+        ?TestResolutionAggregator $aggregator = null,
+        ?ExceptionClassifierInterface $classifier = null,
+    ) {
+        $this->unitLoader = $unitLoader ?? new FilesystemUnitLoader(getcwd().'/tests');
+        $this->testResolutionAggregator = $aggregator ?? new TestResolutionAggregator(new DefaultSeverityPolicy());
+        $this->classifier = $classifier ?? new DefaultExceptionClassifier();
     }
 
     public function run(): TestsResult
     {
-        foreach (new DirectoryIterator(getcwd() . '/tests') as $fileInfo) {
-            if ($fileInfo->isDot()) {
-                continue;
-            }
-            include_once $fileInfo->getRealPath();
-        }
-
-        $units = _unit();
-
-        /** @var array<string, Unit> $allTests */
-        $allTests = [];
-
-        foreach ($units as $unitTitle => $unitCallback) {
-            $ref = null;
-            if ($unitCallback instanceof \Closure) {
-                $ref = new ReflectionFunction($unitCallback);
-            } elseif (is_array($unitCallback)) {
-                [$objOrClass, $method] = $unitCallback;
-                $ref = new ReflectionMethod($objOrClass, (string)$method);
-            } elseif (is_string($unitCallback) && \function_exists($unitCallback)) {
-                $ref = new ReflectionFunction($unitCallback);
-            }
-
-            $skippedReason = null;
-            $filename = '';
-            $line = 0;
-            if ($ref) {
-                $filename = $ref->getFileName();
-                $line = $ref->getStartLine();
-                $attrs = $ref->getAttributes(Skipped::class);
-                if ($attrs) {
-                    /** @var Skipped $s */
-                    $skippedAttribute = $attrs[0]->newInstance();
-                    $skippedReason = $skippedAttribute->reason;
-                }
-            }
-
-            $unit = new Unit();
-            $unit->file = $filename;
-            $unit->line = $line;
-            $unit->skippedReason = $skippedReason;
-
-            $this->invoke(
-                $unitCallback,
-                [
-                    'unit'       => $unit,
-                    Unit::class  => $unit,
-                ],
-                [
-                    'unitTitle' => $unitTitle,
-                ]
-            );
-
-            $allTests[$unitTitle] = $unit;
-        }
+        $units = $this->unitLoader->load();
+        $allTests = $this->extractTestsFromUnits($units);
 
         $this->progressWatcher->onStart($allTests);
 
@@ -88,7 +50,9 @@ class UnitRunner
             $tests = $unit->getTests();
             $this->progressWatcher->onUnitStart($unitTitle, $unit);
 
-            $unit->runBefore();
+            if ($unit->skippedReason === null) {
+                $unit->runBefore();
+            }
 
             foreach ($tests as $testTitle => $testCallback) {
                 $assertCollector = new AssertCollector();
@@ -105,141 +69,99 @@ class UnitRunner
                     $unit->runBeforeEach();
 
                     try {
-                        $this->invoke(
+                        $this->invoker->invoke(
                             $testCallback,
                             [
-                                'assertCollector' => $assertCollector,
                                 AssertCollector::class => $assertCollector,
-                                'unit' => $unit,
                                 Unit::class => $unit,
-                            ],
-                            [
-                                'unitTitle' => $unitTitle,
-                                'testTitle' => $testTitle,
                             ],
                         );
                     } catch (TestPreconditionFailedException $e) {
                         $assertCollector->assertions[] = new Assertion(
                             'Test precondition failed',
                             $e->getMessage(),
-                            AssertResolution::Error,
+                            $this->classifier->classify($e),
                             $e->getFile(),
                             $e->getLine(),
                         );
                     } catch (\Throwable $e) {
                         $assertCollector->assertions[] = new Assertion(
-                            'Error occured',
+                            'Error occurred',
                             $e::class . ': ' . $e->getMessage(),
-                            AssertResolution::Error,
+                            $this->classifier->classify($e),
                             $e->getFile(),
                             $e->getLine(),
                         );
                     }
                 }
-                $testResolution = $this->detectTestResolution($assertCollector);
+                $testResolution = $this->testResolutionAggregator->aggregate($assertCollector);
+                $outcome = new TestOutcome($unitTitle, $testTitle, $testResolution, $assertCollector->assertions);
                 $result->registerTestResult($testResolution, count($assertCollector->assertions));
 
-                $this->progressWatcher->onTestResult($unitTitle, $unit, $testTitle, $assertCollector);
+                $this->progressWatcher->onTestResult($outcome);
 
                 $unit->runAfterEach();
             }
 
-            $unit->runAfter();
+            if ($unit->skippedReason === null) {
+                $unit->runAfter();
+            }
         }
         $this->progressWatcher->onEnd();
 
         return $result;
     }
 
-    private function detectTestResolution(AssertCollector $assertCollector): AssertResolution
+    /**
+     * @param iterable<string, callable> $units
+     * @return array<string, Unit>
+     */
+    public function extractTestsFromUnits(iterable $units): array
     {
-        $resolution = AssertResolution::Success;
+        /** @var array<string, Unit> $allTests */
+        $allTests = [];
 
-        foreach ($assertCollector->assertions as $assertion) {
-            if ($this->severity($assertion->resolution) > $this->severity($resolution)) {
-                $resolution = $assertion->resolution;
+        foreach ($units as $unitTitle => $unitCallback) {
+            $unit = new Unit();
+            $this->enrichWithMeta($unit, $unitCallback);
+
+            $this->invoker->invoke(
+                $unitCallback,
+                [
+                    Unit::class => $unit,
+                ]
+            );
+
+            $allTests[$unitTitle] = $unit;
+        }
+        return $allTests;
+    }
+
+    private function enrichWithMeta(Unit $unit, callable $unitCallback): void
+    {
+        $ref = null;
+        if ($unitCallback instanceof \Closure) {
+            $ref = new ReflectionFunction($unitCallback);
+        } elseif (is_array($unitCallback)) {
+            [$objOrClass, $method] = $unitCallback;
+            $ref = new ReflectionMethod($objOrClass, (string)$method);
+        } elseif (is_string($unitCallback) && \function_exists($unitCallback)) {
+            $ref = new ReflectionFunction($unitCallback);
+        }
+        $skippedReason = null;
+        $filename = '';
+        $line = 0;
+        if ($ref) {
+            $filename = $ref->getFileName();
+            $line = $ref->getStartLine();
+            $attrs = $ref->getAttributes(Skipped::class);
+            if ($attrs) {
+                $skippedReason = $attrs[0]->newInstance()->reason;
             }
         }
 
-        return $resolution;
-    }
-
-    private function severity(AssertResolution $resolution): int
-    {
-        return match ($resolution) {
-            AssertResolution::Success => 0,
-            AssertResolution::Skipped => 1,
-            AssertResolution::Incomplete => 2,
-            AssertResolution::Warning => 3,
-            AssertResolution::Failed => 4,
-            AssertResolution::Error => 5,
-            AssertResolution::Risky => 6,
-        };
-    }
-
-    private function invoke(callable $callable, array $provided = [], array $context = []): mixed
-    {
-        $ref = $this->reflectCallable($callable);
-        $args = [];
-
-        foreach ($ref->getParameters() as $param) {
-            $res = $this->resolver->resolve($param, $provided, $context);
-            if ($res->ok) {
-                $args[] = $res->value;
-                continue;
-            }
-
-            if ($param->isDefaultValueAvailable()) {
-                $args[] = $param->getDefaultValue();
-                continue;
-            }
-
-            $type = $param->getType();
-            $class = $type && !$type->isBuiltin() ? (string)$type : null;
-            $hint = $class ? "type {$class}" : "name \${$param->getName()}";
-            throw new \RuntimeException("Can't inject {$hint} for {$this->callableToString($callable)}");
-        }
-
-        return $callable(...$args);
-    }
-
-    private function reflectCallable(callable $c): ReflectionFunctionAbstract
-    {
-        if ($c instanceof \Closure) {
-            return new ReflectionFunction($c);
-        }
-        if (is_array($c)) {
-            [$objOrClass, $method] = $c;
-            return new ReflectionMethod($objOrClass, $method);
-        }
-        if (is_object($c) && method_exists($c, '__invoke')) {
-            return new ReflectionMethod($c, '__invoke');
-        }
-        if (is_string($c) && function_exists($c)) {
-            return new ReflectionFunction($c);
-        }
-
-        return new ReflectionFunction(\Closure::fromCallable($c));
-    }
-
-    private function callableToString(callable $c): string
-    {
-        if (is_array($c)) {
-            [$objOrClass, $method] = $c;
-            if (is_object($objOrClass)) {
-                return get_class($objOrClass) . "->{$method}()";
-            }
-            return $objOrClass . "::{$method}()";
-        }
-        if ($c instanceof \Closure) {
-            return 'Closure';
-        }
-        if (is_object($c) && method_exists($c, '__invoke')) {
-            return get_class($c) . '::__invoke()';
-        }
-        if (is_string($c)) {
-            return $c;
-        }
-        return 'callable';
+        $unit->file = $filename;
+        $unit->line = $line;
+        $unit->skippedReason = $skippedReason;
     }
 }

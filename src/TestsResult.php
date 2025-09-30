@@ -4,8 +4,17 @@ declare(strict_types=1);
 
 namespace Umodi;
 
+use Umodi\Result\TestOutcome;
+use Umodi\Severity\AssertResolution;
+
 final class TestsResult
 {
+    /** @var TestOutcome[] */
+    private array $outcomes = [];
+    public function addOutcome(TestOutcome $o): void { $this->outcomes[] = $o; }
+    /** @return TestOutcome[] */
+    public function outcomes(): array { return $this->outcomes; }
+
     public int $tests = 0;
     public int $assertions = 0;
 
@@ -37,11 +46,6 @@ final class TestsResult
     public function testsFor(AssertResolution $resolution): int
     {
         return $this->testsByResolution[$resolution->value] ?? 0;
-    }
-
-    public function worstResolution(): AssertResolution
-    {
-        return $this->worstResolution;
     }
 
     public function hasFailures(): bool

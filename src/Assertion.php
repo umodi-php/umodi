@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Umodi;
 
+use Umodi\Severity\AssertResolution;
+
 readonly class Assertion
 {
     public function __construct(

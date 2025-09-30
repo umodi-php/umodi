@@ -11,10 +11,10 @@ final class CompositeResolver implements ParameterResolverInterface
     /** @param ParameterResolverInterface[] $chain */
     public function __construct(private readonly array $chain) {}
 
-    public function resolve(ReflectionParameter $param, array $provided, array $context = []): Resolution
+    public function resolve(ReflectionParameter $param, array $provided): Resolution
     {
         foreach ($this->chain as $r) {
-            $res = $r->resolve($param, $provided, $context);
+            $res = $r->resolve($param, $provided);
             if ($res->ok) return $res;
         }
         return Resolution::miss();

@@ -10,7 +10,7 @@ final class ProvidedMapResolver implements ParameterResolverInterface
 {
     public function __construct(private readonly array $globalProvided = []) {}
 
-    public function resolve(ReflectionParameter $param, array $provided, array $context = []): Resolution
+    public function resolve(ReflectionParameter $param, array $provided): Resolution
     {
         $all = $provided + $this->globalProvided;
 
