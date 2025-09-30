@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Umodi\Assert\Boolean;
 
-use Umodi\AssertResult;
+use Umodi\Result\AssertResult;
 use Umodi\Severity\AssertResolution;
 
 function isTrue(mixed $actual): AssertResult

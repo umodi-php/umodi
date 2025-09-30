@@ -12,19 +12,25 @@ use Umodi\Exception\InjectionException;
 class Invoker
 {
     public function __construct(
-        private readonly ParameterResolverInterface $resolver,
+        private readonly ?ParameterResolverInterface $resolver = null,
     )
     {
     }
 
-    public function invoke(callable $callable, array $provided = [], array $context = []): mixed
+    public function invoke(callable $callable, array $provided = []): mixed
     {
         $ref = $this->reflectCallable($callable);
         $args = [];
 
         foreach ($ref->getParameters() as $param) {
-            $res = $this->resolver->resolve($param, $provided);
-            if ($res->ok) {
+            $name = $param->getType()?->getName();
+            if (array_key_exists($name, $provided)) {
+                $args[] = Resolution::hit(self::eval($provided[$name]))->value;
+                continue;
+            }
+
+            $res = $this->resolver?->resolve($param);
+            if ($res !== null && $res->ok) {
                 $args[] = $res->value;
                 continue;
             }
@@ -60,5 +66,10 @@ class Invoker
         }
 
         return new ReflectionFunction(\Closure::fromCallable($c));
+    }
+
+    private static function eval(mixed $v): mixed
+    {
+        return is_callable($v) ? $v() : $v;
     }
 }

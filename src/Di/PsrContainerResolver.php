@@ -13,7 +13,7 @@ final class PsrContainerResolver implements ParameterResolverInterface
     {
     }
 
-    public function resolve(ReflectionParameter $param, array $provided): Resolution
+    public function resolve(ReflectionParameter $param): Resolution
     {
         $type = $param->getType();
         $class = $type && !$type->isBuiltin() ? (string)$type : null;

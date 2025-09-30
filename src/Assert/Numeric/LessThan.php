@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Umodi\Assert\Numeric;
 
-use Umodi\AssertResult;
+use Umodi\Result\AssertResult;
 use Umodi\Severity\AssertResolution;
 
 /**

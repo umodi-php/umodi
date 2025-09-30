@@ -10,6 +10,8 @@ use Umodi\Attribute\Skipped;
 use Umodi\Di\Invoker;
 use Umodi\Exception\TestPreconditionFailedException;
 use Umodi\ProgressWatcher\ProgressWatcherInterface;
+use Umodi\Result\AssertCollector;
+use Umodi\Result\Assertion;
 use Umodi\Result\TestOutcome;
 use Umodi\Severity\AssertResolution;
 use Umodi\Severity\DefaultExceptionClassifier;

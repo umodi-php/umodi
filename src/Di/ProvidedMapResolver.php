@@ -39,7 +39,6 @@ final class ProvidedMapResolver implements ParameterResolverInterface
         return Resolution::miss();
     }
 
-    /** Разворачиваем ленивые фабрики (callable) при необходимости */
     private static function eval(mixed $v, bool $lazyOk = false): mixed
     {
         return is_callable($v) ? $v() : $v;

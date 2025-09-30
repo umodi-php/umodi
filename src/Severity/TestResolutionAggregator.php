@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Umodi\Severity;
 
-use Umodi\AssertCollector;
+use Umodi\Result\AssertCollector;
 
 final class TestResolutionAggregator {
     public function __construct(private readonly SeverityPolicyInterface $policy) {}

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Umodi\ProgressWatcher;
 
-use Umodi\AssertCollector;
-use Umodi\Assertion;
+use Umodi\Result\Assertion;
 use Umodi\Result\TestOutcome;
 use Umodi\Severity\AssertResolution;
 use Umodi\Unit;

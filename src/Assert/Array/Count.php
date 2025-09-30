@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Umodi\Assert\Array;
 
 use Countable;
-use Umodi\AssertResult;
+use Umodi\Result\AssertResult;
 use Umodi\Severity\AssertResolution;
 
 function count(int $expected, Countable|array $actual): AssertResult

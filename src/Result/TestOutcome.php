@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Umodi\Result;
 
-use Umodi\Assertion;
 use Umodi\Severity\AssertResolution;
 
 final class TestOutcome {

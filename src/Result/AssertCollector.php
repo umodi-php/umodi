@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Umodi;
+namespace Umodi\Result;
 
 use Umodi\Severity\AssertResolution;
 

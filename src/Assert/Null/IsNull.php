@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Umodi\Assert\Null;
 
-use Umodi\AssertResult;
+use Umodi\Result\AssertResult;
 use Umodi\Severity\AssertResolution;
 
 function isNull(mixed $actual): AssertResult
