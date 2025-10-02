@@ -6,8 +6,9 @@ namespace Umodi;
 
 use ReflectionFunction;
 use ReflectionMethod;
+use Umodi\Attribute\Incomplete;
 use Umodi\Attribute\Skipped;
-use Umodi\Di\Invoker;
+use Umodi\Di\Invoker\InvokerInterface;
 use Umodi\Exception\TestPreconditionFailedException;
 use Umodi\ProgressWatcher\ProgressWatcherInterface;
 use Umodi\Result\AssertCollector;
@@ -29,7 +30,7 @@ class UnitRunner
 
     public function __construct(
         private readonly ProgressWatcherInterface $progressWatcher,
-        private readonly Invoker $invoker,
+        private readonly InvokerInterface $invoker,
         ?UnitLoaderInterface $unitLoader = null,
         ?TestResolutionAggregator $aggregator = null,
         ?ExceptionClassifierInterface $classifier = null,
@@ -39,14 +40,12 @@ class UnitRunner
         $this->classifier = $classifier ?? new DefaultExceptionClassifier();
     }
 
-    public function run(): TestsResult
+    public function run(): void
     {
         $units = $this->unitLoader->load();
         $allTests = $this->extractTestsFromUnits($units);
 
         $this->progressWatcher->onStart($allTests);
-
-        $result = new TestsResult();
 
         foreach ($allTests as $unitTitle => $unit) {
             $tests = $unit->getTests();
@@ -78,6 +77,7 @@ class UnitRunner
                                 Unit::class => $unit,
                             ],
                         );
+                    } catch (\Umodi\Exception\StopTestException) {
                     } catch (TestPreconditionFailedException $e) {
                         $assertCollector->assertions[] = new Assertion(
                             'Test precondition failed',
@@ -98,7 +98,6 @@ class UnitRunner
                 }
                 $testResolution = $this->testResolutionAggregator->aggregate($assertCollector);
                 $outcome = new TestOutcome($unitTitle, $testTitle, $testResolution, $assertCollector->assertions);
-                $result->registerTestResult($testResolution, count($assertCollector->assertions));
 
                 $this->progressWatcher->onTestResult($outcome);
 
@@ -110,15 +109,13 @@ class UnitRunner
             }
         }
         $this->progressWatcher->onEnd();
-
-        return $result;
     }
 
     /**
      * @param iterable<string, callable> $units
      * @return array<string, Unit>
      */
-    public function extractTestsFromUnits(iterable $units): array
+    private function extractTestsFromUnits(iterable $units): array
     {
         /** @var array<string, Unit> $allTests */
         $allTests = [];
@@ -151,6 +148,7 @@ class UnitRunner
             $ref = new ReflectionFunction($unitCallback);
         }
         $skippedReason = null;
+        $incompleteReason = null;
         $filename = '';
         $line = 0;
         if ($ref) {
@@ -160,10 +158,15 @@ class UnitRunner
             if ($attrs) {
                 $skippedReason = $attrs[0]->newInstance()->reason;
             }
+            $attrs = $ref->getAttributes(Incomplete::class);
+            if ($attrs) {
+                $incompleteReason = $attrs[0]->newInstance()->reason;
+            }
         }
 
         $unit->file = $filename;
         $unit->line = $line;
         $unit->skippedReason = $skippedReason;
+        $unit->incompleteReason = $incompleteReason;
     }
 }

@@ -123,7 +123,7 @@ class CliProgressWatcher implements ProgressWatcherInterface
                     $desc = $a->description ?? '';
 
                     printf(
-                        "    %s %s(%d)\n      %s%s\n",
+                        "    %s %s:%d\n      %s%s\n",
                         $this->symbolFor($a),
                         $file,
                         (int)$line,

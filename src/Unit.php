@@ -7,6 +7,7 @@ namespace Umodi;
 class Unit implements UnitInterface, RunnableUnitInterface
 {
     public ?string $skippedReason;
+    public ?string $incompleteReason;
     public string $file;
     public int $line;
 

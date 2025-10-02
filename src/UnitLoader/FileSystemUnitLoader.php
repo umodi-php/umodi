@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Umodi\UnitLoader;
 
-use DirectoryIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 use function Umodi\_unit;
 
 class FileSystemUnitLoader implements UnitLoaderInterface
@@ -15,13 +16,16 @@ class FileSystemUnitLoader implements UnitLoaderInterface
 
     public function load(): iterable
     {
-        foreach (new DirectoryIterator($this->path) as $fileInfo) {
-            if ($fileInfo->isDot()) {
-                continue;
+        $directory = $this->path;
+        $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
+        $it->rewind();
+        while($it->valid()) {
+            if (!$it->isDot()) {
+                include_once $it->key();
             }
-            include_once $fileInfo->getRealPath();
-        }
 
+            $it->next();
+        }
         return _unit();
     }
 }

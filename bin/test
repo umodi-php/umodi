@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-use Umodi\Di\Invoker;
+use Umodi\Di\Invoker\Invoker;
 use Umodi\ProgressWatcher\CliProgressWatcher;
 use Umodi\UnitLoader\FileSystemUnitLoader;
 use Umodi\UnitRunner;
@@ -13,7 +13,7 @@ include __DIR__ . '/../bootstrap.php';
 $runner = new UnitRunner(
     new CliProgressWatcher(),
     new Invoker(),
-    unitLoader: new FileSystemUnitLoader(__DIR__ . '/../example-tests'),
+    unitLoader: new FileSystemUnitLoader(__DIR__ . '/../tests'),
 );
 $runner->run();
 
